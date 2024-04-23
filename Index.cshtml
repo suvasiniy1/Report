@@ -1,0 +1,742 @@
+﻿@model TMSS.Web.Models.SurgeryDetailsReport
+
+
+@{
+    ViewData["Title"] = "Theater Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Generate Report</h4>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .custom-link-style {
+            color: #3366cc; /* Set your desired text color */
+            text-decoration: none; /* Remove the default underline */
+            font-weight: bold;
+        }
+        #datatable-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow-x: auto; /* Enable horizontal scrolling if needed */
+        }
+        #datatable {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%; /* Ensure the table takes full width */
+        }
+
+        #btnPrint {
+            display: none; /* Hide the print button initially */
+        }
+        @@media print {
+            body, html {
+                width: 100%;
+            }
+
+            #datatable-container {
+                width: 100%;
+                overflow-x: visible; /* Make sure the full table is visible when printing */
+            }
+
+            #datatable {
+                white-space: nowrap; /* Make sure the content of each cell is on a single line */
+            }
+            /* Hide other elements that should not be visible in the print layout */
+            .form-group, .row, button {
+                display: none;
+            }
+            /* Add any other print-specific styles here */
+        }
+        /* Other styles */
+    </style>
+</head>
+
+<body>
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+        <form id="frmReport" onsubmit="return validateForm()">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row" style="text-align:center;display:flex;align-items:center;justify-content:center;">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="example" style="font-weight:bold;">From Date</label>
+                        <div class="form-group">
+                            <input asp-for="RegistrationDate" class="form-control" type="date" data-val="true" data-val-required="From Date is required" id="RegFromDate" />
+                            <span asp-validation-for="RegistrationDate" class="text-danger"></span>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="example" style="font-weight:bold;">To Date</label>
+                        <div class="form-group">
+                            <input asp-for="RegistrationDate" class="form-control" type="date" data-val="true" data-val-required="To Date is required" id="RegToDate" />
+                            <span asp-validation-for="RegistrationDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row" style="text-align:center;display:flex;align-items:center;justify-content:center;">
+                <div class="col-md-4" style="width:20%">
+                    <div class="form-group">
+                        <input type="text" id="querySurgeon" name="term" class="form-control" placeholder="Select Surgeon.." />
+
+                    </div>
+                </div>
+                <div class="col-md-4" style="width:20%">
+                    <div class="form-group">
+                        <input type="text" id="queryProcedure" name="term" class="form-control" placeholder="Select Procedure.." />
+
+                    </div>
+                </div>
+                <div class="col-md-4" style="width:20%">
+                    <div class="form-group">
+                        <input type="text" id="queryClinic" name="term" class="form-control" placeholder="Select Clinic" />
+
+                        @*                     @Html.DropDownListFor(m => m.ClinicId, (IEnumerable<SelectListItem>)ViewBag.Clinic, "Select a Clinic", new { id = "clinicDropdownId",@class="form-control",@required="required" })
+                        *@
+                    </div>
+                </div>
+                <div class="col-md-4" style="width:20%">
+                    <div class="form-group">
+                        <input type="text" id="queryComplication" name="term" class="form-control" placeholder="Select Complication" />
+
+                    </div>
+                </div>
+                <div class="col-md-4" style="width:20%">
+
+                    <div class="form-group">
+                        <button id="btnSearch" type="button" class="btn btn-primary">Search</button>
+                        <button id="btnClear" type="button" class="btn btn-primary">Clear</button>
+                        @*                     @Html.ActionLink("Go Back", "Index", "Admin", new { admin = "Admin",@class = "custom-link-style" })
+                        *@
+                    </div>
+                    @*  <div style="font-weight:bold;color:darkolivegreen">
+                    </div>
+                    *@
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <br />
+    <div id="datatable-container">
+
+        @* <table id="datatable" style="display: none;">
+        <thead>
+        <tr>
+        <th>
+        Registration Date
+        </th>
+        <th>
+        Patient No
+        </th>
+        <th>
+        Patient Name
+        </th>
+        <th>
+        Procedure Name
+        </th>
+        <th>
+        Surgeon Name
+        </th>
+        <th>
+        Clinic Name
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+
+        @* <th>
+        Complication
+        </th>
+        <th>
+        Incident
+        </th> *@
+
+        @* </tr>
+        </thead>
+        </table> *@
+
+        <table id="datatable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>
+                        Registration Date
+                    </th>
+                    <th>
+                        Patient No
+                    </th>
+                    <th>
+                        Patient Name
+                    </th>
+                    <th>
+                        Procedure Name
+                    </th>
+                    <th>
+                        Surgeon Name
+                    </th>
+                    <th>
+                        Clinic Name
+                    </th>
+                    <th>
+                        Arrived In Clinic <!-- Add headers for the columns you want to hide -->
+                    </th>
+                    <th>
+                        Arrived In Theater
+                    </th>
+                    <th>
+                        Anesthesia Start Time
+                    </th>
+                    <th>
+                        Knife To Skin Time
+                    </th>
+                    <th>
+                        Procedure Finish Time
+                    </th>
+                    <th>
+                        Departure Time
+                    </th>
+                    <th>
+                        Duration
+                    </th>
+                    @* <th>
+                        Complication
+                    </th>
+                    <th>
+                        Incident
+                    </th>
+ *@                </tr>
+            </thead>
+        </table>
+        <button id="btnPrint" type="button" class="btn btn-primary">Print Report</button>
+    </div>
+</body>
+</html>
+@section scripts{
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.min.js"></script>
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.8.0.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.22/jquery-ui.js"></script>
+    <link rel="Stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/redmond/jquery-ui.css" />
+
+
+    @*     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    *@
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    @*     <link href="DataTables/datatables.min.css" rel="stylesheet">
+ *@
+    @*     <script src="DataTables/datatables.min.js"></script>
+ *@
+
+    <script src="//cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="//cdn.datatables.net/tabletools/2.2.4/js/dataTables.tableTools.min.js"></script>
+
+    <link rel="Stylesheet" type="text/css" href="//cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <link rel="Stylesheet" type="text/css" href="//cdn.datatables.net/tabletools/2.2.4/css/dataTables.tableTools.css" />
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.css" />
+
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.js"></script>
+
+    <!-- Buttons CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.1.1/css/buttons.dataTables.min.css" />
+
+    <!-- Buttons JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.1.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.1.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.1.1/js/buttons.print.min.js"></script>
+
+    <!-- PDFMake script -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+
+
+    <script type="text/javascript">
+
+        $('#btnClear').on('click', function () {
+            $('#querySurgeon').val('');
+            $('#queryProcedure').val('');
+            $('#queryClinic').val('');
+            $('#queryComplication').val('');
+
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            // ... your existing code ...
+
+            // Event listener for the print button
+            $('#btnPrint').on('click', function () {
+                window.print();
+            });
+        });
+
+        // $('#btnSearch').click(function () {
+
+        //     debugger;
+        //     var fromDate = document.getElementById('RegFromDate').value;
+        //     var toDate = document.getElementById('RegToDate').value;
+        //     var surgeonName = document.getElementById('querySurgeon').value;
+        //     var procedureName = document.getElementById('queryProcedure').value;
+        //     var clinicName = document.getElementById('queryClinic').value;
+        //     var complicationName = document.getElementById('queryComplication').value;
+        //     // Destroy existing DataTable instance
+        //     if ($.fn.DataTable.isDataTable('#datatable')) {
+        //         $('#datatable').DataTable().destroy();
+        //     }
+
+        //     $.ajax({
+        //         url: '/DatatableReport/Get',
+        //         type: 'GET',
+        //         dataType: "json",
+        //         data: { searchFromDate: fromDate, searchToDate: toDate, searchSurgeon: surgeonName, searchProcedure: procedureName, searchClinic: clinicName, searchComplication: complicationName },
+
+        //         success: function (response) {
+        //             debugger;
+        //             validateForm();
+        //             $('#datatable').show();
+
+        //             $('#datatable').DataTable({
+        //                 data: response.lstSurgeryDetailsReport,  // Assuming your data is in the 'response' variable
+        //                 // Corrected from 'datatable' to 'DataTable'
+        //                 columns: [
+        //                     {
+        //                         data: 'registrationDate',
+        //                         title: 'Registration Date',
+        //                             render: function (data) {
+        //                                 return data.year + '-' + data.month + '-' + data.day; // Format the date as needed
+        //                             }
+        //                     },
+        //                     { data: 'patientNo' },
+        //                     { data: 'firstName' },
+        //                     { data: 'surgeonFirstName' },
+        //                     { data: 'procedureName' },
+        //                     { data: 'clinicName' },
+        //                     { data: 'formattedArrivedInClinic', title: 'Arrived In Clinic' },
+        //                     { data: 'formattedArrivedInTheater', title: 'Arrived In Theater' },
+        //                     { data: 'formattedAnesthesiaStartTime',title: 'Anesthesia Start Time' },
+        //                     { data: 'formattedKnifeSkinTime', title: 'Knife To Skin Time' },
+        //                     { data: 'formattedProcedureFinishTime', title: 'Procedure Finish Time' },
+        //                     { data: 'formattedDepartureTime', title: 'Departure Time' },
+        //                     { data: 'duration' },
+        //                     { data: 'complicationName' },
+        //                     { data: 'incidentDetails' },
+
+        //                 ]
+        //             });
+        //             // $('#partialContainer').html(response);
+
+        //         },
+        //         error: function () {
+        //             alert('Error loading partial view');
+        //         }
+        //     });
+        // });
+
+
+        // function getColumns(complicationName) {
+        //     var baseColumns = [
+        //         { data: 'registrationDate', title: 'Registration Date', render: function (data) { return data.year + '-' + data.month + '-' + data.day; } },
+        //         { data: 'patientNo', title: 'Patient No' },
+        //         { data: 'firstName', title: 'Patient Name' },
+        //         { data: 'procedureName', title: 'Procedure Name' },
+        //         { data: 'surgeonFirstName', title: 'Surgeon Name' },
+        //         { data: 'clinicName', title: 'Clinic Name' }]; // Added missing comma here
+        //     if (complicationName) {
+        //         return baseColumns.concat([
+        //             { data: 'complicationName', title: 'Complication' },
+        //             { data: 'incidentDetails', title: 'Incident' }
+        //         ]);
+        //     } else {
+        //         return baseColumns.concat([
+        //             { data: 'formattedArrivedInClinic', title: 'Arrived In Clinic' },
+        //             { data: 'formattedArrivedInTheater', title: 'Arrived In Theater' },
+        //             { data: 'formattedAnesthesiaStartTime', title: 'Anesthesia Start Time' },
+        //             { data: 'formattedKnifeSkinTime', title: 'Knife To Skin Time' },
+        //             { data: 'formattedProcedureFinishTime', title: 'Procedure Finish Time' },
+        //             { data: 'formattedDepartureTime', title: 'Departure Time' },
+        //             { data: 'duration', title: 'Duration' }]);
+        //     }
+        // }
+        document.addEventListener('DOMContentLoaded', function () {
+            // function getColumns(complicationName) {
+            //     // Determine if we are searching by complicationName
+            //     var isComplicationSearch = !!complicationName;
+
+            //     // Base columns
+            //     var columns = [
+            //         // Common columns, always visible
+            //         { data: 'registrationDate', title: 'Registration Date', render: function (data) { return data.year + '-' + data.month + '-' + data.day; } },
+            //         { data: 'patientNo', title: 'Patient No' },
+            //         { data: 'firstName', title: 'Patient Name' },
+            //         { data: 'procedureName', title: 'Procedure Name' },
+            //         { data: 'surgeonFirstName', title: 'Surgeon Name' },
+            //         { data: 'clinicName', title: 'Clinic Name' },
+            //         { data: 'formattedAnesthesiaStartTime', title: 'Anesthesia Start Time', visible: !isComplicationSearch },
+            //         { data: 'formattedKnifeSkinTime', title: 'Knife To Skin Time', visible: !isComplicationSearch },
+            //         { data: 'formattedProcedureFinishTime', title: 'Procedure Finish Time', visible: !isComplicationSearch },
+            //         { data: 'formattedDepartureTime', title: 'Departure Time', visible: !isComplicationSearch },
+            //         { data: 'duration', title: 'Duration', visible: !isComplicationSearch }
+            //     ];
+
+            //     if (isComplicationSearch) {
+            //         // Add complication-specific columns
+            //         columns.push(
+            //             { data: 'complicationName', title: 'Complication' },
+            //             { data: 'incidentDetails', title: 'Incident' }
+            //         );
+            //     } else {
+            //         // Add the additional columns for date range search
+            //         columns.push(
+            //             { data: 'formattedArrivedInClinic', title: 'Arrived In Clinic' },
+            //             { data: 'formattedArrivedInTheater', title: 'Arrived In Theater' }
+            //         );
+            //     }
+
+            //     return columns;
+            // }
+            function getColumns(complicationName) {
+                // Determine if we are searching by complicationName
+                var isComplicationSearch = !!complicationName;
+
+                // Base columns
+                var columns = [
+                    // Common columns, always visible
+                    { data: 'registrationDate', title: 'Registration Date', render: function (data) { return data.year + '-' + data.month + '-' + data.day; } },
+                    { data: 'patientNo', title: 'Patient No' },
+                    { data: 'firstName', title: 'Patient Name' },
+                    { data: 'procedureName', title: 'Procedure Name' },
+                    { data: 'surgeonFirstName', title: 'Surgeon Name' },
+                    { data: 'clinicName', title: 'Clinic Name' }
+                ];
+
+                if (!isComplicationSearch) {
+                    // Add the additional columns for date range search
+                    columns.push(
+                        { data: 'formattedArrivedInClinic', title: 'Arrived In Clinic' },
+                        { data: 'formattedArrivedInTheater', title: 'Arrived In Theater' },
+                        { data: 'formattedAnesthesiaStartTime', title: 'Anesthesia Start Time' },
+                        { data: 'formattedKnifeSkinTime', title: 'Knife To Skin Time' },
+                        { data: 'formattedProcedureFinishTime', title: 'Procedure Finish Time' },
+                        { data: 'formattedDepartureTime', title: 'Departure Time' },
+                        { data: 'duration', title: 'Duration' }
+                    );
+                } else {
+                    // For complication search, these columns are not visible
+                    columns.push(
+                        { data: 'formattedAnesthesiaStartTime', title: 'Anesthesia Start Time', visible: false },
+                        { data: 'formattedKnifeSkinTime', title: 'Knife To Skin Time', visible: false },
+                        { data: 'formattedProcedureFinishTime', title: 'Procedure Finish Time', visible: false },
+                        { data: 'formattedDepartureTime', title: 'Departure Time', visible: false },
+                        { data: 'duration', title: 'Duration', visible: false }
+                    );
+                }
+
+                // Complication-specific columns
+                if (isComplicationSearch) {
+                    columns.push(
+                        { data: 'complicationName', title: 'Complication' },
+                        { data: 'incidentDetails', title: 'Incident' }
+                    );
+                }
+
+                return columns;
+            }
+
+            $('#btnSearch').click(function () {
+                debugger;
+                var fromDate = document.getElementById('RegFromDate').value;
+                var toDate = document.getElementById('RegToDate').value;
+                var surgeonName = document.getElementById('querySurgeon').value;
+                var procedureName = document.getElementById('queryProcedure').value;
+                var clinicName = document.getElementById('queryClinic').value;
+                var complicationName = document.getElementById('queryComplication').value;
+
+                if ($.fn.DataTable.isDataTable('#datatable')) {
+                    $('#datatable').DataTable().clear().destroy();
+                }
+                // var complicationName = $('#queryComplication').val().trim();
+
+                var columns = getColumns(complicationName);
+
+                $.ajax({
+                    url: '/DatatableReport/Get',
+                    type: 'GET',
+                    dataType: "json",
+                    data: {
+                        searchFromDate: fromDate,
+                        searchToDate: toDate,
+                        searchSurgeon: surgeonName,
+                        searchProcedure: procedureName,
+                        searchClinic: clinicName,
+                        searchComplication: complicationName
+                    },
+                    success: function (response) {
+                        validateForm();
+                        $('#datatable').show();
+                        $('#btnPrint').show();
+                        var table = $('#datatable').DataTable({
+                            data: response.lstSurgeryDetailsReport,
+                            columns: columns,
+                            dom: 'Bfrtip', // Add 'B' to enable Buttons
+                            buttons: [
+                                'copy',
+                                {
+                                    extend: 'excel',
+                                    exportOptions: {
+                                        columns: ':visible' // Export only visible columns
+                                    }
+                                },
+                                'csv',
+                                'print',
+                                {
+                                    extend: 'pdf',
+                                    exportOptions: {
+                                        columns: ':visible' // Export only visible columns
+                                    },
+                                    customize: function (doc) {
+                                        var borderStyles = {
+                                            hLineWidth: function (i, node) {
+                                                return (i === 0 || i === node.table.body.length) ? 2 : 1;
+                                            },
+                                            vLineWidth: function (i, node) {
+                                                return (i === 0 || i === node.table.widths.length) ? 2 : 1;
+                                            },
+                                            hLineColor: function (i, node) {
+                                                return (i === 0 || i === node.table.body.length) ? 'gray' : 'gray';
+                                            },
+                                            vLineColor: function (i, node) {
+                                                return (i === 0 || i === node.table.widths.length) ? 'gray' : 'gray';
+                                            },
+                                            paddingLeft: function (i, node) { return 4; },
+                                            paddingRight: function (i, node) { return 4; },
+                                            paddingTop: function (i, node) { return 2; },
+                                            paddingBottom: function (i, node) { return 2; }
+                                        };
+
+                                        // Apply the styles for all tables in the document
+                                        doc.content.forEach(function (contentItem) {
+                                            if (contentItem.table) {
+                                                contentItem.layout = borderStyles;
+                                            }
+                                        });
+
+                                        // Apply additional styles for header if needed
+                                        if (doc.content[1] && doc.content[1].table && doc.content[1].table.body) {
+                                            for (var i = 0; i < doc.content[1].table.headerRows; i++) {
+                                                var headerRow = doc.content[1].table.body[i];
+                                                headerRow.forEach(function (cell) {
+                                                    cell.fillColor = '#dddddd';
+                                                    cell.color = '#000000'; // Set text color to black
+                                                    cell.fontStyle = 'bold';     // Make header text bold
+                                                });
+                                            }
+                                        }
+                                    },
+
+                                    orientation: 'landscape',
+                                    pageSize: 'A4'
+                                }
+                            ],
+                            responsive: true,
+                            autoWidth: true // Allow DataTables to calculate column widths dynamically
+
+                        });
+                                   
+
+                    },
+                    error: function () {
+                        alert('Error loading partial view');
+                    }
+                });
+            });
+
+        });
+
+
+        function validateForm() {
+            debugger;
+            var fromDate = document.getElementById("RegFromDate").value;
+            var toDate = document.getElementById("RegToDate").value;
+
+            // Check if both fields are filled out
+            if (fromDate === "" || toDate === "") {
+                alert("Both From Date and To Date are required");
+                return false;
+            }
+
+            // You can also check if the From Date is before the To Date if needed
+            // Example: if (new Date(fromDate) > new Date(toDate)) { ... }
+
+            return true; // Form will be submitted if both conditions are met
+        }
+        $(function () {
+            $("#querySurgeon").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/GenerateReport/SurgeonAutocomplete",
+                        data: { term: request.term },
+                        dataType: "json",
+                        type: "GET",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            // var item = JSON.stringify(patientData);
+                            //  alert(item);
+                            response($.map(data, function (item) {
+                                return item;
+                            }))
+                        },
+
+                    });
+                },
+                minLength: 1 // Minimum characters before triggering autocomplete
+            });
+        });
+
+        $(function () {
+            $("#queryProcedure").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/GenerateReport/ProcedureAutocomplete",
+                        data: { term: request.term },
+                        dataType: "json",
+                        type: "GET",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            // var item = JSON.stringify(patientData);
+                            //  alert(item);
+                            response($.map(data, function (item) {
+                                return item;
+                            }))
+                        },
+
+                    });
+                },
+                minLength: 1 // Minimum characters before triggering autocomplete
+            });
+        });
+        $(function () {
+            $("#queryClinic").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/GenerateReport/ClinicAutocomplete",
+                        data: { term: request.term },
+                        dataType: "json",
+                        type: "GET",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            // var item = JSON.stringify(patientData);
+                            //  alert(item);
+                            response($.map(data, function (item) {
+                                return item;
+                            }))
+                        },
+
+                    });
+                },
+                minLength: 1 // Minimum characters before triggering autocomplete
+            });
+        });
+        $(function () {
+            $("#queryComplication").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/GenerateReport/ComplicationAutocomplete",
+                        data: { term: request.term },
+                        dataType: "json",
+                        type: "GET",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            // var item = JSON.stringify(patientData);
+                            //  alert(item);
+                            response($.map(data, function (item) {
+                                return item;
+                            }))
+                        },
+
+                    });
+                },
+                minLength: 1 // Minimum characters before triggering autocomplete
+            });
+        });
+                                                // $("#clinicDropdownId").autocomplete({
+                                                //     source: function (request, response) {
+                                                //         $.ajax({
+                                                //             url: '@Url.Action("SurgeonAutocomplete", "GenerateReport")',
+                                                //             dataType: "json",
+                                                //             data: {
+                                                //                 term: request.term
+                                                //             },
+                                                //             success: function (data) {
+                                                //                 response(data);
+                                                //             },
+                                                //             error: function (error) {
+                                                //                 console.error("Error fetching autocomplete suggestions:", error);
+                                                //             }
+                                                //         });
+                                                //     },
+                                                //     minLength: 2
+                                                // });
+
+                                                // $("#clinicDropdownId").change(function () {
+                                                //     debugger;
+                                                //     var selectedClinicId = $("#clinicDropdownId :selected").val();
+
+                                                //     // Make an AJAX request to get the surgeon details based on the selected clinic
+                                                //     $.ajax({
+                                                //         url: '@Url.Action("SurgeonAutocomplete", "GenerateReport")',
+                                                //         type: 'GET',
+                                                //         dataType: "json",
+                                                //         data: { clinicId: selectedClinicId },
+                                                //         contentType: 'application/json; charset=utf-8',
+                                                //         success: function (data) {
+                                                //             $("#querySurgeon").autocomplete({
+                                                //                 alert(data)
+                                                //                 source: data,
+                                                //                 minLength: 2
+                                                //             });
+                                                //         },
+                                                //         error: function () {
+                                                //             console.log('Error retrieving surgeon details.');
+                                                //         }
+                                                //     });
+                                                // });
+    </script>
+
+    }
+
